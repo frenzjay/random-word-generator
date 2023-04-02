@@ -1,0 +1,105 @@
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 36px;
+      color: #333;
+    }
+
+    p {
+      font-size: 18px;
+      color: #666;
+    }
+
+    #word {
+      font-weight: bold;
+    }
+
+    #meaning {
+      margin-top: 20px;
+    }
+
+    #sentence {
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    #previous {
+      margin-top: 40px;
+      list-style-type: none;
+    }
+
+    #previous li {
+      display: inline-block;
+      margin-right: 10px;
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #audio {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Random Word of the Day</h1>
+  <p id="word"></p>
+  <p id="meaning"></p>
+  <p id="sentence"></p>
+  <audio id="audio" controls></audio>
+  <ul id="previous"></ul>
+  <script>
+    function getRandomWord() {
+      fetch("https://random-word-api.herokuapp.com/word?number=1")
+        .then(response => response.json()) 
+        .then(data => {
+          let word = data[0];
+          document.getElementById("word").textContent = word;
+          getMeaningAndSentence(word);
+          addPreviousWord(word);
+        })
+        .catch(error => {
+          console.error(error);
+          document.getElementById("word").textContent = "Oops, something went wrong.";
+        });
+    }
+
+    function getMeaningAndSentence(word) {
+      fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
+        .then(response => response.json()) 
+        .then(data => {
+          let definition = data[0].meanings[0].definitions[0].definition;
+          let example = data[0].meanings[0].definitions[0].example;
+          document.getElementById("meaning").textContent = definition;
+          document.getElementById("sentence").textContent = example;
+          let audio = data[0].phonetics[0].audio;
+          document.getElementById("audio").src = audio;
+        })
+        .catch(error => {
+          console.error(error);
+          document.getElementById("meaning").textContent = "Sorry, no meaning or sentence found for this word.";
+        });
+    }
+
+    function addPreviousWord(word) {
+      let previous = document.getElementById("previous");
+      let li = document.createElement("li");
+      li.textContent = word;
+      li.addEventListener("click", function() {
+        document.getElementById("word").textContent = word;
+        getMeaningAndSentence(word);
+      });
+      previous.appendChild(li);
+    }
+
+    window.onload = getRandomWord;
+  </script>
+</body>
+</html>
